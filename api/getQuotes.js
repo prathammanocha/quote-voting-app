@@ -1,5 +1,4 @@
-// api/getQuotes.js
-import { google } from 'googleapis';
+mport { google } from 'googleapis';
 
 export default async function handler(req, res) {
   console.log('API route called');
@@ -10,17 +9,17 @@ export default async function handler(req, res) {
 
     let credentials;
     try {
-      credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+      // Parse the credentials, replacing newline placeholders with actual newlines
+      credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS.replace(/\\n/g, '\n'));
+      console.log('Credentials parsed successfully');
     } catch (parseError) {
+      console.error('Error parsing credentials:', parseError);
       throw new Error(`Failed to parse GOOGLE_APPLICATION_CREDENTIALS: ${parseError.message}`);
     }
 
     if (!process.env.SPREADSHEET_ID) {
       throw new Error('SPREADSHEET_ID is not set');
     }
-
-    console.log('Credentials parsed successfully');
-    console.log('SPREADSHEET_ID:', process.env.SPREADSHEET_ID);
 
     const auth = new google.auth.GoogleAuth({
       credentials: credentials,
@@ -38,7 +37,7 @@ export default async function handler(req, res) {
       range: 'A2:A', // Assuming quotes start from A2
     });
 
-    console.log('Sheets response:', response.data);
+    console.log('Sheets response received');
 
     const quotes = response.data.values.map((row, index) => ({
       id: index + 1,
@@ -47,7 +46,7 @@ export default async function handler(req, res) {
       totalVotes: 0,
     }));
 
-    console.log('Quotes processed:', quotes);
+    console.log('Quotes processed:', quotes.length);
 
     res.status(200).json(quotes);
   } catch (error) {
